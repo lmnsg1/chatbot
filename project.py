@@ -9,7 +9,6 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 import firebase_admin
 from firebase_admin import db
 
-
 cred_obj = firebase_admin.credentials.Certificate({
     "type": os.environ["FIREBASE_TYPE"],
     "project_id": os.environ["FIREBASE_PROJECT_ID"],
@@ -56,7 +55,7 @@ def main():
     updater.idle()
     
 def echo(update, context):
-    reply_message = 'Use /movielist, /read, /write. or /add'
+    reply_message = 'Welcome to our movie review chatbot\nYou can use /movielist to see all the movies we have'
     logging.info("Update: " + str(update))
     logging.info("context: " + str(context))
     context.bot.send_message(chat_id=update.effective_chat.id, text= reply_message)
@@ -65,7 +64,11 @@ def movielist(update: Update, context: CallbackContext) -> None:
 	"""Send the list of movie when the command /movielist is issued."""
 	data = db_ref.child('movies/').get()
 	if data:   
-		reply = "Here are our list of movies\nYou can choose one to read or write reviews by typing '/read moviename' or '/write moviename'\n"
+		reply = "Here are our list of movies\n"
+		reply += "\nYou can choose one to read reviews by typing /read followed by the number in front of the movie name or\n"
+		reply += "to write a review for a movie by typing /write followed by the number in front of the movie name followed by your review\n"
+		reply += "\nFor example, /read 1 will show all the reviews for the first movie; /write 1 fantastic! will add 'fantastic!' as a review to the first movie\n"
+		reply += "\nFurthermore, in case we don't have the movie you wish to review, you can add it by typing /add followed by movie name\n\n"
 		reply += showallmovies()
 		update.message.reply_text(reply)
 	else:
@@ -95,7 +98,7 @@ def read(update: Update, context: CallbackContext) -> None:
 			else:
 				update.message.reply_text("Sorry, there is currently no review for this movie.\nGo ahead and add one!")
 	except (IndexError, ValueError):
-		update.message.reply_text('Usage: /add <keyword>')
+		update.message.reply_text('Usage: /read followed by the number in front of the movie name')
 
 def write(update: Update, context: CallbackContext) -> None:
 	try:
@@ -117,7 +120,7 @@ def write(update: Update, context: CallbackContext) -> None:
 			
 			update.message.reply_text('Thank you for your review!')
 	except (IndexError, ValueError):
-		update.message.reply_text('Usage: /add <keyword>')
+		update.message.reply_text('Usage: /write followed by the number in front of the movie name followed by your review')
 
 def addmovie(update: Update, context: CallbackContext) -> None:
     try:
@@ -133,7 +136,7 @@ def addmovie(update: Update, context: CallbackContext) -> None:
         reply += showallmovies()
         update.message.reply_text(reply)
     except (IndexError, ValueError):
-        update.message.reply_text('Usage: /add <keyword>')
+        update.message.reply_text('Usage: /add followed by movie name')
 
 if __name__ == '__main__':
     main()
